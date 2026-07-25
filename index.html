@@ -2,278 +2,332 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Risk Ladder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #12161C;
-    --panel: #181D25;
-    --panel-2: #1F262F;
-    --line: #2A323C;
-    --amber: #F0B429;
-    --amber-dim: #8A6A22;
-    --win: #2FBF71;
-    --win-dim: #1D4A36;
-    --loss: #FF5C5C;
-    --loss-dim: #542626;
-    --text: #E7EAEE;
-    --text-dim: #8B96A3;
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --bg: #000000;
+    --card: rgba(255,255,255,0.055);
+    --card-hi: rgba(255,255,255,0.09);
+    --hairline: rgba(255,255,255,0.10);
+    --label: rgba(255,255,255,0.96);
+    --label-2: rgba(255,255,255,0.56);
+    --label-3: rgba(255,255,255,0.30);
+    --green: #30D158;
+    --green-dim: rgba(48,209,88,0.16);
+    --red: #FF453A;
+    --red-dim: rgba(255,69,58,0.16);
+    --blue: #409CFF;
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html{background:var(--bg);}
   body{
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-mono);
+    background:
+      radial-gradient(ellipse 700px 400px at 50% -10%, rgba(64,156,255,0.10), transparent 60%),
+      var(--bg);
+    color:var(--label);
+    font-family:var(--font);
     min-height:100vh;
-    padding: 28px 16px 60px;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
   }
-  .wrap{max-width:640px; margin:0 auto;}
-  .eyebrow{
-    font-family: var(--font-mono);
-    font-size:11px;
-    letter-spacing:0.18em;
-    color: var(--text-dim);
-    text-transform:uppercase;
-    margin-bottom:6px;
-  }
-  h1{
-    font-family: var(--font-display);
-    font-size:22px;
-    font-weight:600;
-    letter-spacing:-0.01em;
-    margin-bottom:22px;
-    display:flex; align-items:baseline; gap:10px;
-  }
-  h1 .tick{color:var(--amber);}
 
-  .risk-card{
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:24px;
-    margin-bottom:16px;
-    position:relative;
-    overflow:hidden;
-  }
-  .risk-card::before{
-    content:"";
-    position:absolute; top:0; left:0; right:0; height:2px;
-    background: var(--amber);
-    opacity:0.7;
-  }
-  .risk-label{
-    font-size:11px; letter-spacing:0.14em; color:var(--text-dim); text-transform:uppercase;
-  }
-  .risk-value{
-    font-family: var(--font-display);
-    font-size:56px;
-    font-weight:700;
-    color:var(--amber);
-    line-height:1.1;
-    margin:4px 0 2px;
-  }
-  .risk-sub{font-size:12px; color:var(--text-dim);}
-
-  .ladder{
-    display:flex;
-    gap:4px;
-    margin-top:20px;
-    flex-wrap:wrap;
-  }
-  .rung{
-    flex:1;
-    min-width:34px;
-    text-align:center;
-    padding:6px 2px;
-    border-radius:6px;
-    font-size:11px;
-    background: var(--panel);
-    color: var(--text-dim);
-    border:1px solid var(--line);
-  }
-  .rung.done{background: var(--win-dim); color:var(--win); border-color:transparent;}
-  .rung.now{background: var(--amber); color:#181D25; font-weight:700; border-color:transparent;}
-
-  .batch-card{
-    background: var(--panel);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:20px 24px;
-    margin-bottom:16px;
-  }
-  .batch-head{
-    display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
-  }
-  .batch-title{font-family:var(--font-display); font-size:15px; font-weight:600;}
-  .batch-count{font-size:12px; color:var(--text-dim);}
-  .slots{display:flex; gap:6px; margin-bottom:16px;}
-  .slot{
-    flex:1; height:34px; border-radius:6px;
-    background: var(--panel-2);
-    border:1px solid var(--line);
+  /* Nav */
+  .nav{
+    position:sticky; top:0; z-index:50;
+    padding:14px 20px;
     display:flex; align-items:center; justify-content:center;
-    font-size:13px; font-weight:700;
+    backdrop-filter:blur(20px) saturate(1.6);
+    -webkit-backdrop-filter:blur(20px) saturate(1.6);
+    background:rgba(0,0,0,0);
+    border-bottom:1px solid transparent;
+    transition:background .3s var(--ease), border-color .3s var(--ease);
   }
-  .slot.win{background:var(--win-dim); color:var(--win); border-color:transparent;}
-  .slot.loss{background:var(--loss-dim); color:var(--loss); border-color:transparent;}
-  .slot.threshold{border-bottom:2px solid var(--amber);}
-
-  .btn-row{display:flex; gap:10px;}
-  button{
-    font-family:var(--font-display);
-    font-weight:600;
-    font-size:14px;
-    border:none;
-    border-radius:9px;
-    padding:13px 0;
-    cursor:pointer;
-    flex:1;
-    transition: transform .08s ease, filter .12s ease;
+  .nav.scrolled{ background:rgba(20,20,22,0.72); border-bottom-color:var(--hairline); }
+  .nav-title{
+    font-size:15px; font-weight:600; opacity:0;
+    transform:translateY(4px);
+    transition:opacity .25s var(--ease), transform .25s var(--ease);
   }
-  button:active{transform: scale(0.97);}
-  .btn-win{background:var(--win); color:#0E241A;}
-  .btn-loss{background:var(--loss); color:#2B0E0E;}
-  .btn-win:hover, .btn-loss:hover{filter:brightness(1.08);}
+  .nav.scrolled .nav-title{ opacity:1; transform:translateY(0); }
 
-  .util-row{display:flex; gap:10px; margin-top:12px;}
-  .btn-util{
-    background:transparent; color:var(--text-dim);
-    border:1px solid var(--line);
+  .large-title{
+    padding:6px 20px 18px;
+    max-width:520px; margin:0 auto;
+  }
+  .large-title h1{
+    font-size:34px; font-weight:800; letter-spacing:-0.02em;
+  }
+  .large-title p{
+    font-size:14px; color:var(--label-2); margin-top:4px; font-weight:500;
+  }
+
+  .wrap{max-width:520px; margin:0 auto; padding:0 20px;}
+  .stack > * + *{ margin-top:14px; }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--hairline);
+    border-radius:22px;
+    padding:22px;
+    animation: rise .5s var(--ease) both;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .card:nth-of-type(2){ animation-delay:.06s; }
+  .card:nth-of-type(3){ animation-delay:.12s; }
+
+  /* Hero */
+  .hero-label{ font-size:13px; font-weight:600; color:var(--label-2); }
+  .hero-value{
     font-family:var(--font-mono);
-    font-size:12px;
-    font-weight:500;
-    padding:9px 0;
+    font-size:56px; font-weight:700; letter-spacing:-0.02em;
+    line-height:1.08;
+    margin-top:2px;
+    background:linear-gradient(135deg, #30D158, #64D2FF 90%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    transition:transform .5s var(--spring);
+    display:inline-block;
   }
-  .btn-util:hover{color:var(--text); border-color:var(--text-dim);}
+  .hero-value.pulse{ animation:levelPulse .7s var(--spring); }
+  @keyframes levelPulse{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.14); }
+    100%{ transform:scale(1); }
+  }
+  .hero-sub{ font-size:13px; color:var(--label-2); margin-top:6px; font-weight:500; }
 
-  .log-card{
-    background: var(--panel);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:18px 24px;
+  /* Track / ladder */
+  .track-wrap{ margin-top:22px; }
+  .track{
+    position:relative;
+    height:6px; border-radius:3px;
+    background:rgba(255,255,255,0.08);
+    overflow:visible;
   }
-  .log-title{font-family:var(--font-display); font-size:14px; font-weight:600; margin-bottom:12px; color:var(--text-dim);}
-  .log-list{display:flex; flex-direction:column-reverse; gap:0; max-height:280px; overflow-y:auto;}
+  .track-fill{
+    position:absolute; left:0; top:0; height:100%;
+    border-radius:3px;
+    background:linear-gradient(90deg, #30D158, #64D2FF);
+    transition:width .6s var(--spring);
+  }
+  .track-dash{
+    position:absolute; left:100%; top:0; height:100%;
+    width:0; border-radius:3px;
+    background-image:repeating-linear-gradient(90deg, #64D2FF 0 6px, transparent 6px 12px);
+    transition:width .6s var(--spring);
+  }
+  .track-dot{
+    position:absolute; top:50%; width:16px; height:16px;
+    border-radius:50%; background:#fff;
+    box-shadow:0 0 0 4px rgba(100,210,255,0.25), 0 2px 6px rgba(0,0,0,0.4);
+    transform:translate(-50%,-50%);
+    transition:left .6s var(--spring);
+  }
+  .track-ticks{ display:flex; justify-content:space-between; margin-top:10px; }
+  .track-ticks span{ font-size:10px; color:var(--label-3); font-weight:600; font-family:var(--font-mono); }
+
+  /* Batch card */
+  .row-between{ display:flex; align-items:baseline; justify-content:space-between; }
+  .section-title{ font-size:17px; font-weight:700; letter-spacing:-0.01em; }
+  .section-meta{ font-size:13px; color:var(--label-2); font-weight:500; font-family:var(--font-mono); }
+
+  .segments{ display:flex; gap:5px; margin-top:16px; }
+  .seg{
+    flex:1; height:30px; border-radius:9px;
+    background:rgba(255,255,255,0.06);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    transition:background .3s var(--ease);
+  }
+  .seg.thresh::after{
+    content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:var(--blue);
+  }
+  .seg.win{ background:var(--green); animation:pop .35s var(--spring); }
+  .seg.loss{ background:var(--red); animation:pop .35s var(--spring); }
+  @keyframes pop{ from{ transform:scale(0.6); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .seg svg{ width:14px; height:14px; }
+
+  .btn-row{ display:flex; gap:10px; margin-top:18px; }
+  button{
+    font-family:var(--font);
+    font-weight:700; font-size:15px;
+    border:none; border-radius:15px;
+    padding:15px 0; cursor:pointer; flex:1;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    transition:transform .15s var(--spring), filter .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  button:active{ transform:scale(0.95); }
+  .btn-win{ background:var(--green); color:#00230F; box-shadow:0 6px 16px -6px rgba(48,209,88,0.5); }
+  .btn-loss{ background:var(--red); color:#2B0000; box-shadow:0 6px 16px -6px rgba(255,69,58,0.5); }
+  .btn-win:hover, .btn-loss:hover{ filter:brightness(1.06); }
+
+  .util-row{ display:flex; gap:20px; margin-top:16px; justify-content:center; }
+  .btn-text{
+    background:none; flex:none; padding:6px 4px;
+    font-size:13px; font-weight:600; color:var(--label-2);
+  }
+  .btn-text:hover{ color:var(--label); }
+  .btn-text.danger{ color:var(--red); opacity:0.85; }
+  .btn-text.danger:hover{ opacity:1; }
+
+  .note{ font-size:12px; color:var(--label-3); margin-top:14px; line-height:1.5; font-weight:500; }
+
+  /* History */
+  .log-list{ display:flex; flex-direction:column; margin-top:14px; max-height:320px; overflow-y:auto; }
   .log-item{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:9px 0;
-    border-bottom:1px solid var(--line);
-    font-size:12.5px;
+    display:flex; align-items:center; gap:12px;
+    padding:11px 0;
+    border-bottom:1px solid var(--hairline);
   }
-  .log-item:first-child{border-bottom:none;}
-  .log-item .l-tag{
-    font-weight:700; padding:2px 7px; border-radius:4px; font-size:10.5px; letter-spacing:0.04em;
+  .log-item:last-child{ border-bottom:none; }
+  .log-icon{
+    width:30px; height:30px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
   }
-  .tag-w{background:var(--win-dim); color:var(--win);}
-  .tag-l{background:var(--loss-dim); color:var(--loss);}
-  .tag-up{background:var(--amber-dim); color:var(--amber);}
-  .tag-hold{background:var(--panel-2); color:var(--text-dim);}
-  .log-meta{color:var(--text-dim); font-size:11px;}
-  .empty{color:var(--text-dim); font-size:12.5px; text-align:center; padding:20px 0;}
+  .log-icon svg{ width:16px; height:16px; }
+  .icon-win{ background:var(--green-dim); color:var(--green); }
+  .icon-loss{ background:var(--red-dim); color:var(--red); }
+  .icon-up{ background:rgba(100,210,255,0.16); color:var(--blue); }
+  .icon-hold{ background:rgba(255,255,255,0.07); color:var(--label-2); }
+  .log-main{ flex:1; min-width:0; }
+  .log-title-row{ font-size:14px; font-weight:600; }
+  .log-sub{ font-size:12px; color:var(--label-2); margin-top:1px; }
+  .log-time{ font-size:11.5px; color:var(--label-3); font-family:var(--font-mono); white-space:nowrap; }
 
-  ::-webkit-scrollbar{width:6px;}
-  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+  .empty{ text-align:center; padding:28px 0; color:var(--label-3); font-size:13px; font-weight:500; }
 
-  .note{font-size:11px; color:var(--text-dim); margin-top:10px; line-height:1.5;}
+  ::-webkit-scrollbar{ width:5px; }
+  ::-webkit-scrollbar-thumb{ background:var(--hairline); border-radius:3px; }
+
+  /* Celebration overlay */
+  .burst{
+    position:fixed; inset:0; pointer-events:none; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0;
+  }
+  .burst.show{ animation:burstShow 1.1s var(--ease) forwards; }
+  @keyframes burstShow{
+    0%{ opacity:0; }
+    10%{ opacity:1; }
+    80%{ opacity:1; }
+    100%{ opacity:0; }
+  }
+  .burst-ring{
+    width:120px; height:120px; border-radius:50%;
+    border:2px solid var(--green);
+    animation:ringExpand 1.1s var(--ease) forwards;
+  }
+  @keyframes ringExpand{
+    0%{ transform:scale(0.3); opacity:0.9; }
+    100%{ transform:scale(2.6); opacity:0; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="eyebrow">position sizing</div>
-  <h1><span class="tick">▮</span> Risk Ladder</h1>
-
-  <div class="risk-card">
-    <div class="risk-label">current risk per trade</div>
-    <div class="risk-value" id="riskValue">$10</div>
-    <div class="risk-sub" id="riskSub">Level 1 · pass 7/10 to move up</div>
-    <div class="ladder" id="ladder"></div>
+  <div class="nav" id="nav"><div class="nav-title">Risk Ladder</div></div>
+  <div class="large-title">
+    <h1>Risk Ladder</h1>
+    <p>Position sizing that scales with your edge</p>
   </div>
 
-  <div class="batch-card">
-    <div class="batch-head">
-      <div class="batch-title">Current batch</div>
-      <div class="batch-count" id="batchCount">0 / 10 · 0 wins</div>
+  <div class="wrap stack">
+    <div class="card">
+      <div class="hero-label">Current risk per trade</div>
+      <div class="hero-value" id="riskValue">$10</div>
+      <div class="hero-sub" id="riskSub">Level 1 · pass 7 of 10 to move up</div>
+      <div class="track-wrap">
+        <div class="track">
+          <div class="track-fill" id="trackFill"></div>
+          <div class="track-dash" id="trackDash"></div>
+          <div class="track-dot" id="trackDot"></div>
+        </div>
+        <div class="track-ticks">
+          <span>$10</span><span>$55</span><span>$100+</span>
+        </div>
+      </div>
     </div>
-    <div class="slots" id="slots"></div>
-    <div class="btn-row">
-      <button class="btn-win" id="btnWin">+ Log Win</button>
-      <button class="btn-loss" id="btnLoss">− Log Loss</button>
+
+    <div class="card">
+      <div class="row-between">
+        <div class="section-title">Current batch</div>
+        <div class="section-meta" id="batchCount">0/10 · 0W</div>
+      </div>
+      <div class="segments" id="segments"></div>
+      <div class="btn-row">
+        <button class="btn-win" id="btnWin">Log win</button>
+        <button class="btn-loss" id="btnLoss">Log loss</button>
+      </div>
+      <div class="util-row">
+        <button class="btn-text" id="btnUndo">Undo last</button>
+        <button class="btn-text danger" id="btnReset">Reset everything</button>
+      </div>
+      <div class="note">Ten trades per batch, fresh count every time. 7+ wins levels you up: +$10 a step until $100, then +20% a step beyond it. Fewer than 7 holds your current risk and starts a new batch.</div>
     </div>
-    <div class="util-row">
-      <button class="btn-util" id="btnUndo">Undo last</button>
-      <button class="btn-util" id="btnReset">Reset everything</button>
+
+    <div class="card">
+      <div class="section-title">History</div>
+      <div class="log-list" id="logList"></div>
     </div>
-    <div class="note">Need 7 of 10 wins in a batch to level up. Fresh batch starts right after every 10th trade, win or lose. Below $100: +$10 per level. At $100+: +20% per level.</div>
   </div>
 
-  <div class="log-card">
-    <div class="log-title">History</div>
-    <div class="log-list" id="logList"></div>
-  </div>
-</div>
+  <div class="burst" id="burst"><div class="burst-ring"></div></div>
 
 <script>
-const START_RISK = 10;
-const CAP = 100;
-const STEP = 10;
-const GROWTH = 1.2;
-const NEED = 7;
-const BATCH = 10;
+const START_RISK = 10, CAP = 100, STEP = 10, GROWTH = 1.2, NEED = 7, BATCH = 10;
 
-let state = {
-  currentRisk: START_RISK,
-  batch: [],          // array of 'W'/'L' for the open batch
-  log: [],            // {kind:'trade'|'levelup'|'hold', ...}
-  batchNum: 1
+let state = { currentRisk: START_RISK, batch: [], log: [], batchNum: 1 };
+
+const ICONS = {
+  win: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
+  loss: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  hold: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>'
 };
 
-function nextRisk(r){
-  if (r < CAP) return Math.min(r + STEP, CAP);
-  return Math.round(r * GROWTH);
+function nextRisk(r){ return r < CAP ? Math.min(r + STEP, CAP) : Math.round(r * GROWTH); }
+function fmt(n){ return '$' + n.toLocaleString(); }
+function timeAgo(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short', day:'numeric'}) + ' · ' + d.toLocaleTimeString(undefined,{hour:'2-digit', minute:'2-digit'});
 }
-
-function ladderLevels(){
-  const levels = [];
-  for(let v = START_RISK; v <= CAP; v += STEP) levels.push(v);
-  return levels;
-}
+function vibe(){ try{ navigator.vibrate && navigator.vibrate(12); }catch(e){} }
 
 async function load(){
   try{
-    const res = await window.storage.get('risk-ladder-state', false);
-    if(res && res.value){
-      state = JSON.parse(res.value);
-    }
-  }catch(e){
-    // no saved state yet
-  }
-  render();
+    const res = await window.storage.get('risk-ladder-state-v2', false);
+    if(res && res.value) state = JSON.parse(res.value);
+  }catch(e){}
+  render(false);
 }
-
 async function save(){
-  try{
-    await window.storage.set('risk-ladder-state', JSON.stringify(state), false);
-  }catch(e){
-    console.error('save failed', e);
-  }
+  try{ await window.storage.set('risk-ladder-state-v2', JSON.stringify(state), false); }catch(e){}
 }
 
 function logTrade(result){
+  vibe();
   state.batch.push(result);
   state.log.push({kind:'trade', result, risk: state.currentRisk, batchNum: state.batchNum, ts: Date.now()});
 
+  let leveledUp = false;
   if(state.batch.length >= BATCH){
     const wins = state.batch.filter(x => x === 'W').length;
     if(wins >= NEED){
-      const from = state.currentRisk;
-      const to = nextRisk(from);
+      const from = state.currentRisk, to = nextRisk(from);
       state.currentRisk = to;
       state.log.push({kind:'levelup', from, to, wins, batchNum: state.batchNum, ts: Date.now()});
+      leveledUp = true;
     } else {
       state.log.push({kind:'hold', wins, risk: state.currentRisk, batchNum: state.batchNum, ts: Date.now()});
     }
@@ -281,114 +335,88 @@ function logTrade(result){
     state.batchNum += 1;
   }
   save();
-  render();
+  render(true, leveledUp);
 }
 
 function undoLast(){
-  if(state.batch.length === 0){
-    // can't safely undo across a batch boundary
-    return;
-  }
+  if(state.batch.length === 0) return;
   state.batch.pop();
-  // remove the most recent 'trade' log entry
   for(let i = state.log.length - 1; i >= 0; i--){
-    if(state.log[i].kind === 'trade'){
-      state.log.splice(i, 1);
-      break;
-    }
+    if(state.log[i].kind === 'trade'){ state.log.splice(i,1); break; }
   }
-  save();
-  render();
+  save(); render(false);
 }
 
 function resetAll(){
-  state = {currentRisk: START_RISK, batch: [], log: [], batchNum: 1};
-  save();
-  render();
+  state = { currentRisk: START_RISK, batch: [], log: [], batchNum: 1 };
+  save(); render(false);
 }
 
-function fmt(n){
-  return '$' + n.toLocaleString();
+function celebrate(){
+  const el = document.getElementById('burst');
+  el.classList.remove('show'); void el.offsetWidth;
+  el.classList.add('show');
+  const hv = document.getElementById('riskValue');
+  hv.classList.remove('pulse'); void hv.offsetWidth;
+  hv.classList.add('pulse');
 }
 
-function timeAgo(ts){
-  const d = new Date(ts);
-  return d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' · ' +
-         d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
-}
-
-function render(){
+function render(animate, leveledUp){
   document.getElementById('riskValue').textContent = fmt(state.currentRisk);
-  const levels = ladderLevels();
-  const idx = levels.indexOf(state.currentRisk);
-  let subText;
-  if(state.currentRisk < CAP){
-    subText = `Fixed-step phase · next level ${fmt(nextRisk(state.currentRisk))}`;
-  } else {
-    subText = `Compounding phase · +20% per level · next ${fmt(nextRisk(state.currentRisk))}`;
-  }
-  document.getElementById('riskSub').textContent = subText;
+  document.getElementById('riskSub').textContent = state.currentRisk < CAP
+    ? `Fixed-step phase · next level ${fmt(nextRisk(state.currentRisk))}`
+    : `Compounding phase · +20% a step · next ${fmt(nextRisk(state.currentRisk))}`;
 
-  const ladderEl = document.getElementById('ladder');
-  ladderEl.innerHTML = '';
-  levels.forEach(v => {
-    const div = document.createElement('div');
-    div.className = 'rung';
-    if(v < state.currentRisk) div.className += ' done';
-    if(v === state.currentRisk) div.className += ' now';
-    div.textContent = '$' + v;
-    ladderEl.appendChild(div);
-  });
-  if(state.currentRisk >= CAP){
-    const div = document.createElement('div');
-    div.className = 'rung now';
-    div.textContent = fmt(state.currentRisk) + '+';
-    ladderEl.appendChild(div);
-  }
+  const pct = Math.min(state.currentRisk / CAP, 1) * 100;
+  document.getElementById('trackFill').style.width = pct + '%';
+  document.getElementById('trackDot').style.left = pct + '%';
+  document.getElementById('trackDash').style.width = state.currentRisk > CAP ? '18%' : '0%';
 
   const wins = state.batch.filter(x => x === 'W').length;
-  document.getElementById('batchCount').textContent = `${state.batch.length} / 10 · ${wins} wins`;
+  document.getElementById('batchCount').textContent = `${state.batch.length}/10 · ${wins}W`;
 
-  const slotsEl = document.getElementById('slots');
-  slotsEl.innerHTML = '';
+  const segEl = document.getElementById('segments');
+  segEl.innerHTML = '';
   for(let i = 0; i < BATCH; i++){
     const div = document.createElement('div');
-    div.className = 'slot';
-    if(i === NEED - 1) div.className += ' threshold';
+    div.className = 'seg' + (i === NEED - 1 ? ' thresh' : '');
     const r = state.batch[i];
-    if(r === 'W'){ div.className += ' win'; div.textContent = 'W'; }
-    else if(r === 'L'){ div.className += ' loss'; div.textContent = 'L'; }
-    slotsEl.appendChild(div);
+    if(r === 'W'){ div.className += ' win'; div.innerHTML = ICONS.win; }
+    else if(r === 'L'){ div.className += ' loss'; div.innerHTML = ICONS.loss; }
+    segEl.appendChild(div);
   }
 
   const logEl = document.getElementById('logList');
   logEl.innerHTML = '';
   if(state.log.length === 0){
-    logEl.innerHTML = '<div class="empty">No trades logged yet — log a win or loss to start.</div>';
+    logEl.innerHTML = '<div class="empty">No trades yet. Log a win or loss to start your first batch.</div>';
   } else {
-    state.log.forEach(item => {
+    [...state.log].reverse().forEach(item => {
       const row = document.createElement('div');
       row.className = 'log-item';
-      let tagHtml, mainText, metaText;
+      let iconClass, iconSvg, title, sub;
       if(item.kind === 'trade'){
-        tagHtml = item.result === 'W'
-          ? '<span class="l-tag tag-w">WIN</span>'
-          : '<span class="l-tag tag-l">LOSS</span>';
-        mainText = `Batch ${item.batchNum} · risk ${fmt(item.risk)}`;
-        metaText = timeAgo(item.ts);
+        iconClass = item.result === 'W' ? 'icon-win' : 'icon-loss';
+        iconSvg = item.result === 'W' ? ICONS.win : ICONS.loss;
+        title = item.result === 'W' ? 'Win' : 'Loss';
+        sub = `Batch ${item.batchNum} · risk ${fmt(item.risk)}`;
       } else if(item.kind === 'levelup'){
-        tagHtml = '<span class="l-tag tag-up">LEVEL UP</span>';
-        mainText = `${fmt(item.from)} → ${fmt(item.to)} · ${item.wins}/10 wins`;
-        metaText = timeAgo(item.ts);
+        iconClass = 'icon-up'; iconSvg = ICONS.up;
+        title = 'Level up';
+        sub = `${fmt(item.from)} → ${fmt(item.to)} · ${item.wins}/10 wins`;
       } else {
-        tagHtml = '<span class="l-tag tag-hold">HOLD</span>';
-        mainText = `Stayed at ${fmt(item.risk)} · ${item.wins}/10 wins`;
-        metaText = timeAgo(item.ts);
+        iconClass = 'icon-hold'; iconSvg = ICONS.hold;
+        title = 'Held';
+        sub = `Stayed at ${fmt(item.risk)} · ${item.wins}/10 wins`;
       }
-      row.innerHTML = `<span>${tagHtml} &nbsp; ${mainText}</span><span class="log-meta">${metaText}</span>`;
+      row.innerHTML = `<div class="log-icon ${iconClass}">${iconSvg}</div>
+        <div class="log-main"><div class="log-title-row">${title}</div><div class="log-sub">${sub}</div></div>
+        <div class="log-time">${timeAgo(item.ts)}</div>`;
       logEl.appendChild(row);
     });
   }
+
+  if(animate && leveledUp) celebrate();
 }
 
 document.getElementById('btnWin').addEventListener('click', () => logTrade('W'));
@@ -396,6 +424,10 @@ document.getElementById('btnLoss').addEventListener('click', () => logTrade('L')
 document.getElementById('btnUndo').addEventListener('click', undoLast);
 document.getElementById('btnReset').addEventListener('click', () => {
   if(confirm('Reset risk level and clear all history?')) resetAll();
+});
+
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
 });
 
 load();
