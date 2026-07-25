@@ -11,7 +11,6 @@
   :root{
     --bg: #000000;
     --card: rgba(255,255,255,0.055);
-    --card-hi: rgba(255,255,255,0.09);
     --hairline: rgba(255,255,255,0.10);
     --label: rgba(255,255,255,0.96);
     --label-2: rgba(255,255,255,0.56);
@@ -21,7 +20,10 @@
     --red: #FF453A;
     --red-dim: rgba(255,69,58,0.16);
     --blue: #409CFF;
+    --yellow: #FFD60A;
+    --pink: #FF6482;
     --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --spring-lg: cubic-bezier(0.22, 1.8, 0.36, 1);
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
     --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
@@ -29,45 +31,66 @@
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   html{background:var(--bg);}
   body{
-    background:
-      radial-gradient(ellipse 700px 400px at 50% -10%, rgba(64,156,255,0.10), transparent 60%),
-      var(--bg);
     color:var(--label);
     font-family:var(--font);
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
     padding-bottom:60px;
+    position:relative;
+    overflow-x:hidden;
+    background:var(--bg);
   }
+
+  /* Living aurora background */
+  .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(70px); opacity:0.28;
+  }
+  .aurora span:nth-child(1){ width:420px; height:420px; background:#30D158; top:-140px; left:-100px; animation:float1 16s ease-in-out infinite; }
+  .aurora span:nth-child(2){ width:380px; height:380px; background:#409CFF; top:120px; right:-140px; animation:float2 20s ease-in-out infinite; }
+  .aurora span:nth-child(3){ width:340px; height:340px; background:#FF6482; bottom:-160px; left:60px; animation:float3 18s ease-in-out infinite; }
+  @keyframes float1{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(60px,40px) scale(1.15); } }
+  @keyframes float2{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(-50px,60px) scale(1.1); } }
+  @keyframes float3{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(40px,-50px) scale(1.2); } }
+
+  .content{ position:relative; z-index:1; }
 
   /* Nav */
   .nav{
     position:sticky; top:0; z-index:50;
     padding:14px 20px;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; gap:10px;
     backdrop-filter:blur(20px) saturate(1.6);
     -webkit-backdrop-filter:blur(20px) saturate(1.6);
     background:rgba(0,0,0,0);
     border-bottom:1px solid transparent;
     transition:background .3s var(--ease), border-color .3s var(--ease);
   }
-  .nav.scrolled{ background:rgba(20,20,22,0.72); border-bottom-color:var(--hairline); }
+  .nav.scrolled{ background:rgba(15,15,17,0.75); border-bottom-color:var(--hairline); }
   .nav-title{
     font-size:15px; font-weight:600; opacity:0;
     transform:translateY(4px);
     transition:opacity .25s var(--ease), transform .25s var(--ease);
   }
   .nav.scrolled .nav-title{ opacity:1; transform:translateY(0); }
-
-  .large-title{
-    padding:6px 20px 18px;
-    max-width:520px; margin:0 auto;
+  .sound-btn{
+    position:absolute; right:16px; top:50%; transform:translateY(-50%);
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--hairline);
+    background:rgba(255,255,255,0.05); color:var(--label-2);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:transform .15s var(--spring), color .15s var(--ease);
   }
+  .sound-btn:active{ transform:translateY(-50%) scale(0.88); }
+  .sound-btn svg{ width:16px; height:16px; }
+
+  .large-title{ padding:6px 20px 18px; max-width:520px; margin:0 auto; }
   .large-title h1{
     font-size:34px; font-weight:800; letter-spacing:-0.02em;
+    display:flex; align-items:center; gap:8px;
   }
-  .large-title p{
-    font-size:14px; color:var(--label-2); margin-top:4px; font-weight:500;
-  }
+  .large-title .rocket-emoji{ display:inline-block; animation:idleBob 2.6s ease-in-out infinite; }
+  @keyframes idleBob{ 0%,100%{ transform:translateY(0) rotate(-8deg); } 50%{ transform:translateY(-4px) rotate(4deg); } }
+  .large-title p{ font-size:14px; color:var(--label-2); margin-top:4px; font-weight:500; transition:opacity .2s ease; }
 
   .wrap{max-width:520px; margin:0 auto; padding:0 20px;}
   .stack > * + *{ margin-top:14px; }
@@ -78,124 +101,134 @@
     border-radius:22px;
     padding:22px;
     animation: rise .5s var(--ease) both;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
   }
-  @keyframes rise{
-    from{ opacity:0; transform:translateY(10px); }
-    to{ opacity:1; transform:translateY(0); }
-  }
+  @keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
   .card:nth-of-type(2){ animation-delay:.06s; }
   .card:nth-of-type(3){ animation-delay:.12s; }
+  .card.hero-card{ position:relative; overflow:hidden; }
+  .card.shake{ animation:cardShake .5s var(--ease); }
+  @keyframes cardShake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-6px) rotate(-0.4deg); }
+    40%{ transform:translateX(5px) rotate(0.3deg); }
+    60%{ transform:translateX(-4px); }
+    80%{ transform:translateX(3px); }
+  }
 
-  /* Hero */
   .hero-label{ font-size:13px; font-weight:600; color:var(--label-2); }
   .hero-value{
     font-family:var(--font-mono);
     font-size:56px; font-weight:700; letter-spacing:-0.02em;
-    line-height:1.08;
-    margin-top:2px;
+    line-height:1.08; margin-top:2px;
     background:linear-gradient(135deg, #30D158, #64D2FF 90%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
-    transition:transform .5s var(--spring);
     display:inline-block;
+    animation:breathe 4s ease-in-out infinite;
   }
-  .hero-value.pulse{ animation:levelPulse .7s var(--spring); }
+  @keyframes breathe{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.15); } }
+  .hero-value.pulse{ animation:levelPulse .8s var(--spring-lg); }
   @keyframes levelPulse{
-    0%{ transform:scale(1); }
-    35%{ transform:scale(1.14); }
-    100%{ transform:scale(1); }
+    0%{ transform:scale(1) rotate(0); }
+    30%{ transform:scale(1.22) rotate(-2deg); }
+    55%{ transform:scale(0.96) rotate(1deg); }
+    100%{ transform:scale(1) rotate(0); }
   }
-  .hero-sub{ font-size:13px; color:var(--label-2); margin-top:6px; font-weight:500; }
+  .hero-sub{ font-size:13px; color:var(--label-2); margin-top:6px; font-weight:500; min-height:18px; }
+  .status-line{
+    font-size:13px; font-weight:600; margin-top:14px; padding:9px 12px;
+    border-radius:11px; background:rgba(255,255,255,0.05);
+    display:inline-flex; align-items:center; gap:6px;
+    transition:all .3s var(--ease);
+  }
+  .status-line.hot{ background:rgba(255,214,10,0.14); color:var(--yellow); }
+  .status-line.close{ background:rgba(64,156,255,0.14); color:var(--blue); }
+  .status-line.calm{ color:var(--label-2); }
 
   /* Track / ladder */
   .track-wrap{ margin-top:22px; }
-  .track{
-    position:relative;
-    height:6px; border-radius:3px;
-    background:rgba(255,255,255,0.08);
-    overflow:visible;
-  }
+  .track{ position:relative; height:6px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:visible; }
   .track-fill{
-    position:absolute; left:0; top:0; height:100%;
-    border-radius:3px;
+    position:absolute; left:0; top:0; height:100%; border-radius:3px;
     background:linear-gradient(90deg, #30D158, #64D2FF);
-    transition:width .6s var(--spring);
+    transition:width .7s var(--spring);
   }
   .track-dash{
-    position:absolute; left:100%; top:0; height:100%;
-    width:0; border-radius:3px;
+    position:absolute; left:100%; top:0; height:100%; width:0; border-radius:3px;
     background-image:repeating-linear-gradient(90deg, #64D2FF 0 6px, transparent 6px 12px);
     transition:width .6s var(--spring);
   }
   .track-dot{
-    position:absolute; top:50%; width:16px; height:16px;
-    border-radius:50%; background:#fff;
-    box-shadow:0 0 0 4px rgba(100,210,255,0.25), 0 2px 6px rgba(0,0,0,0.4);
-    transform:translate(-50%,-50%);
-    transition:left .6s var(--spring);
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    font-size:20px; line-height:1;
+    transition:left .7s var(--spring-lg);
+    animation:rocketIdle 1.8s ease-in-out infinite;
+    filter:drop-shadow(0 2px 6px rgba(100,210,255,0.6));
   }
+  @keyframes rocketIdle{ 0%,100%{ transform:translate(-50%,-50%) rotate(45deg); } 50%{ transform:translate(-50%,-58%) rotate(45deg); } }
   .track-ticks{ display:flex; justify-content:space-between; margin-top:10px; }
   .track-ticks span{ font-size:10px; color:var(--label-3); font-weight:600; font-family:var(--font-mono); }
 
-  /* Batch card */
   .row-between{ display:flex; align-items:baseline; justify-content:space-between; }
-  .section-title{ font-size:17px; font-weight:700; letter-spacing:-0.01em; }
+  .section-title{ font-size:17px; font-weight:700; letter-spacing:-0.01em; display:flex; align-items:center; gap:6px; }
+  .streak-badge{
+    font-size:12px; font-weight:700; color:var(--yellow);
+    background:rgba(255,214,10,0.14); padding:3px 8px; border-radius:20px;
+    animation:flamePulse 1.2s ease-in-out infinite;
+  }
+  @keyframes flamePulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.08); } }
   .section-meta{ font-size:13px; color:var(--label-2); font-weight:500; font-family:var(--font-mono); }
 
   .segments{ display:flex; gap:5px; margin-top:16px; }
   .seg{
-    flex:1; height:30px; border-radius:9px;
-    background:rgba(255,255,255,0.06);
-    display:flex; align-items:center; justify-content:center;
-    position:relative;
+    flex:1; height:30px; border-radius:9px; background:rgba(255,255,255,0.06);
+    display:flex; align-items:center; justify-content:center; position:relative;
     transition:background .3s var(--ease);
   }
   .seg.thresh::after{
     content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
     width:4px; height:4px; border-radius:50%; background:var(--blue);
   }
-  .seg.win{ background:var(--green); animation:pop .35s var(--spring); }
-  .seg.loss{ background:var(--red); animation:pop .35s var(--spring); }
-  @keyframes pop{ from{ transform:scale(0.6); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .seg.win{ background:var(--green); animation:pop .4s var(--spring-lg); }
+  .seg.loss{ background:var(--red); animation:pop .4s var(--spring-lg); }
+  @keyframes pop{ from{ transform:scale(0.4) rotate(-15deg); opacity:0; } to{ transform:scale(1) rotate(0); opacity:1; } }
   .seg svg{ width:14px; height:14px; }
 
   .btn-row{ display:flex; gap:10px; margin-top:18px; }
   button{
-    font-family:var(--font);
-    font-weight:700; font-size:15px;
-    border:none; border-radius:15px;
-    padding:15px 0; cursor:pointer; flex:1;
+    font-family:var(--font); font-weight:700; font-size:15px;
+    border:none; border-radius:15px; padding:15px 0; cursor:pointer; flex:1;
     display:flex; align-items:center; justify-content:center; gap:7px;
-    transition:transform .15s var(--spring), filter .15s var(--ease), box-shadow .15s var(--ease);
+    position:relative; overflow:hidden;
+    transition:transform .18s var(--spring-lg), filter .15s var(--ease), box-shadow .15s var(--ease);
   }
-  button:active{ transform:scale(0.95); }
-  .btn-win{ background:var(--green); color:#00230F; box-shadow:0 6px 16px -6px rgba(48,209,88,0.5); }
-  .btn-loss{ background:var(--red); color:#2B0000; box-shadow:0 6px 16px -6px rgba(255,69,58,0.5); }
+  button:active{ transform:scale(0.94); }
+  .btn-win{ background:var(--green); color:#00230F; box-shadow:0 6px 16px -6px rgba(48,209,88,0.55); }
+  .btn-win.bump{ animation:winBump .5s var(--spring-lg); }
+  @keyframes winBump{ 0%{ transform:scale(1); } 40%{ transform:scale(1.08) translateY(-3px); } 100%{ transform:scale(1); } }
+  .btn-loss{ background:var(--red); color:#2B0000; box-shadow:0 6px 16px -6px rgba(255,69,58,0.55); }
+  .btn-loss.bump{ animation:lossBump .5s var(--ease); }
+  @keyframes lossBump{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-4px); } 50%{ transform:translateX(4px); } 75%{ transform:translateX(-2px); } }
   .btn-win:hover, .btn-loss:hover{ filter:brightness(1.06); }
 
   .util-row{ display:flex; gap:20px; margin-top:16px; justify-content:center; }
-  .btn-text{
-    background:none; flex:none; padding:6px 4px;
-    font-size:13px; font-weight:600; color:var(--label-2);
-  }
+  .btn-text{ background:none; flex:none; padding:6px 4px; font-size:13px; font-weight:600; color:var(--label-2); box-shadow:none; }
   .btn-text:hover{ color:var(--label); }
   .btn-text.danger{ color:var(--red); opacity:0.85; }
   .btn-text.danger:hover{ opacity:1; }
 
   .note{ font-size:12px; color:var(--label-3); margin-top:14px; line-height:1.5; font-weight:500; }
 
-  /* History */
   .log-list{ display:flex; flex-direction:column; margin-top:14px; max-height:320px; overflow-y:auto; }
   .log-item{
-    display:flex; align-items:center; gap:12px;
-    padding:11px 0;
+    display:flex; align-items:center; gap:12px; padding:11px 0;
     border-bottom:1px solid var(--hairline);
+    animation:logIn .35s var(--ease) both;
   }
+  @keyframes logIn{ from{ opacity:0; transform:translateX(-6px); } to{ opacity:1; transform:translateX(0); } }
   .log-item:last-child{ border-bottom:none; }
-  .log-icon{
-    width:30px; height:30px; border-radius:9px;
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-  }
+  .log-icon{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .log-icon svg{ width:16px; height:16px; }
   .icon-win{ background:var(--green-dim); color:var(--green); }
   .icon-loss{ background:var(--red-dim); color:var(--red); }
@@ -206,117 +239,214 @@
   .log-sub{ font-size:12px; color:var(--label-2); margin-top:1px; }
   .log-time{ font-size:11.5px; color:var(--label-3); font-family:var(--font-mono); white-space:nowrap; }
 
-  .empty{ text-align:center; padding:28px 0; color:var(--label-3); font-size:13px; font-weight:500; }
+  .empty{ text-align:center; padding:32px 0; color:var(--label-3); font-size:13px; font-weight:500; }
+  .empty .emoji{ font-size:32px; display:block; margin-bottom:8px; animation:idleBob 2.6s ease-in-out infinite; }
 
   ::-webkit-scrollbar{ width:5px; }
   ::-webkit-scrollbar-thumb{ background:var(--hairline); border-radius:3px; }
 
-  /* Celebration overlay */
-  .burst{
-    position:fixed; inset:0; pointer-events:none; z-index:100;
-    display:flex; align-items:center; justify-content:center;
-    opacity:0;
+  /* Confetti */
+  .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden; }
+  .confetti-piece{
+    position:absolute; top:-20px; border-radius:2px;
+    animation-name:confettiFall; animation-timing-function:ease-in; animation-fill-mode:forwards;
   }
-  .burst.show{ animation:burstShow 1.1s var(--ease) forwards; }
-  @keyframes burstShow{
-    0%{ opacity:0; }
-    10%{ opacity:1; }
-    80%{ opacity:1; }
-    100%{ opacity:0; }
+  @keyframes confettiFall{
+    0%{ transform:translateY(0) rotate(0deg); opacity:1; }
+    100%{ transform:translateY(110vh) rotate(600deg); opacity:0.2; }
   }
-  .burst-ring{
-    width:120px; height:120px; border-radius:50%;
-    border:2px solid var(--green);
-    animation:ringExpand 1.1s var(--ease) forwards;
+
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px);
+    background:rgba(28,28,30,0.92); border:1px solid var(--hairline);
+    backdrop-filter:blur(20px);
+    padding:11px 18px; border-radius:14px;
+    font-size:13.5px; font-weight:600; color:var(--label);
+    opacity:0; z-index:150; pointer-events:none;
+    transition:transform .4s var(--spring), opacity .4s var(--ease);
+    display:flex; align-items:center; gap:8px;
   }
-  @keyframes ringExpand{
-    0%{ transform:scale(0.3); opacity:0.9; }
-    100%{ transform:scale(2.6); opacity:0; }
-  }
+  .toast.show{ transform:translate(-50%,0); opacity:1; }
 </style>
 </head>
 <body>
-  <div class="nav" id="nav"><div class="nav-title">Risk Ladder</div></div>
-  <div class="large-title">
-    <h1>Risk Ladder</h1>
-    <p>Position sizing that scales with your edge</p>
+  <div class="aurora"><span></span><span></span><span></span></div>
+
+  <div class="content">
+    <div class="nav" id="nav">
+      <div class="nav-title">Risk Ladder</div>
+      <button class="sound-btn" id="soundBtn" title="Toggle sound"></button>
+    </div>
+    <div class="large-title">
+      <h1><span class="rocket-emoji">🚀</span> Risk Ladder</h1>
+      <p>Climb one batch at a time</p>
+    </div>
+
+    <div class="wrap stack">
+      <div class="card hero-card">
+        <div class="hero-label">Current risk per trade</div>
+        <div class="hero-value" id="riskValue">$10</div>
+        <div class="hero-sub" id="riskSub">Level 1 · pass 7 of 10 to move up</div>
+        <div class="track-wrap">
+          <div class="track">
+            <div class="track-fill" id="trackFill"></div>
+            <div class="track-dash" id="trackDash"></div>
+            <div class="track-dot" id="trackDot">🚀</div>
+          </div>
+          <div class="track-ticks"><span>$10</span><span>$55</span><span>$100+</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row-between">
+          <div class="section-title">Current batch <span class="streak-badge" id="streakBadge" style="display:none;"></span></div>
+          <div class="section-meta" id="batchCount">0/10 · 0W</div>
+        </div>
+        <div class="segments" id="segments"></div>
+        <div class="status-line calm" id="statusLine">Fresh batch — let's go</div>
+        <div class="btn-row">
+          <button class="btn-win" id="btnWin">Log win</button>
+          <button class="btn-loss" id="btnLoss">Log loss</button>
+        </div>
+        <div class="util-row">
+          <button class="btn-text" id="btnUndo">Undo last</button>
+          <button class="btn-text danger" id="btnReset">Reset everything</button>
+        </div>
+        <div class="note">Ten trades per batch, fresh count every time. 7+ wins levels you up: +$10 a step until $100, then +20% a step beyond it. Fewer than 7 holds your current risk and starts a new batch.</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">History</div>
+        <div class="log-list" id="logList"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="wrap stack">
-    <div class="card">
-      <div class="hero-label">Current risk per trade</div>
-      <div class="hero-value" id="riskValue">$10</div>
-      <div class="hero-sub" id="riskSub">Level 1 · pass 7 of 10 to move up</div>
-      <div class="track-wrap">
-        <div class="track">
-          <div class="track-fill" id="trackFill"></div>
-          <div class="track-dash" id="trackDash"></div>
-          <div class="track-dot" id="trackDot"></div>
-        </div>
-        <div class="track-ticks">
-          <span>$10</span><span>$55</span><span>$100+</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row-between">
-        <div class="section-title">Current batch</div>
-        <div class="section-meta" id="batchCount">0/10 · 0W</div>
-      </div>
-      <div class="segments" id="segments"></div>
-      <div class="btn-row">
-        <button class="btn-win" id="btnWin">Log win</button>
-        <button class="btn-loss" id="btnLoss">Log loss</button>
-      </div>
-      <div class="util-row">
-        <button class="btn-text" id="btnUndo">Undo last</button>
-        <button class="btn-text danger" id="btnReset">Reset everything</button>
-      </div>
-      <div class="note">Ten trades per batch, fresh count every time. 7+ wins levels you up: +$10 a step until $100, then +20% a step beyond it. Fewer than 7 holds your current risk and starts a new batch.</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">History</div>
-      <div class="log-list" id="logList"></div>
-    </div>
-  </div>
-
-  <div class="burst" id="burst"><div class="burst-ring"></div></div>
+  <div class="confetti-layer" id="confettiLayer"></div>
+  <div class="toast" id="toast"></div>
 
 <script>
 const START_RISK = 10, CAP = 100, STEP = 10, GROWTH = 1.2, NEED = 7, BATCH = 10;
 
 let state = { currentRisk: START_RISK, batch: [], log: [], batchNum: 1 };
+let soundOn = true;
 
 const ICONS = {
   win: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
   loss: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
-  hold: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>'
+  hold: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>',
+  soundOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18 6a9 9 0 010 12"/></svg>',
+  soundOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>'
 };
 
 function nextRisk(r){ return r < CAP ? Math.min(r + STEP, CAP) : Math.round(r * GROWTH); }
-function fmt(n){ return '$' + n.toLocaleString(); }
+function fmt(n){ return '$' + Math.round(n).toLocaleString(); }
 function timeAgo(ts){
   const d = new Date(ts);
   return d.toLocaleDateString(undefined,{month:'short', day:'numeric'}) + ' · ' + d.toLocaleTimeString(undefined,{hour:'2-digit', minute:'2-digit'});
 }
-function vibe(){ try{ navigator.vibrate && navigator.vibrate(12); }catch(e){} }
+function vibe(ms){ try{ navigator.vibrate && navigator.vibrate(ms || 12); }catch(e){} }
 
+/* ---------- sound ---------- */
+let actx;
+function ctx(){ if(!actx){ actx = new (window.AudioContext || window.webkitAudioContext)(); } return actx; }
+function tone(freq, start, dur, gainVal, type){
+  if(!soundOn) return;
+  const c = ctx();
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, c.currentTime + start);
+  gain.gain.linearRampToValueAtTime(gainVal, c.currentTime + start + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
+  osc.connect(gain); gain.connect(c.destination);
+  osc.start(c.currentTime + start);
+  osc.stop(c.currentTime + start + dur + 0.05);
+}
+function soundWin(){ tone(660,0,.12,0.14,'triangle'); tone(880,0.09,.16,0.13,'triangle'); }
+function soundLoss(){ tone(180,0,.22,0.13,'sine'); }
+function soundLevelUp(){ [523,659,784,1047].forEach((f,i)=>tone(f, i*0.09, .22, 0.13, 'triangle')); }
+
+/* ---------- confetti ---------- */
+function confettiBurst(){
+  const layer = document.getElementById('confettiLayer');
+  const colors = ['#30D158','#409CFF','#FFD60A','#FF6482','#64D2FF'];
+  for(let i=0;i<48;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    const w = 6 + Math.random()*6, h = 8 + Math.random()*10;
+    p.style.width = w+'px'; p.style.height = h+'px';
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    const dur = 2.2 + Math.random()*1.4;
+    p.style.animationDuration = dur+'s';
+    p.style.animationDelay = (Math.random()*0.3)+'s';
+    p.style.opacity = 0.9;
+    layer.appendChild(p);
+    setTimeout(()=>p.remove(), (dur+0.5)*1000);
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- number tween ---------- */
+function animateNumber(from, to){
+  const el = document.getElementById('riskValue');
+  const start = performance.now();
+  const dur = 550;
+  function step(now){
+    const p = Math.min((now-start)/dur, 1);
+    const eased = 1 - Math.pow(1-p, 3);
+    const val = from + (to-from)*eased;
+    el.textContent = fmt(val);
+    if(p < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(to);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- persistence ---------- */
 async function load(){
   try{
     const res = await window.storage.get('risk-ladder-state-v2', false);
     if(res && res.value) state = JSON.parse(res.value);
   }catch(e){}
+  try{
+    const s = await window.storage.get('risk-ladder-sound', false);
+    if(s && s.value != null) soundOn = s.value === 'true';
+  }catch(e){}
+  updateSoundBtn();
   render(false);
 }
-async function save(){
-  try{ await window.storage.set('risk-ladder-state-v2', JSON.stringify(state), false); }catch(e){}
+async function save(){ try{ await window.storage.set('risk-ladder-state-v2', JSON.stringify(state), false); }catch(e){} }
+async function saveSound(){ try{ await window.storage.set('risk-ladder-sound', String(soundOn), false); }catch(e){} }
+
+function currentStreak(){
+  let streak = 0;
+  for(let i = state.log.length - 1; i >= 0; i--){
+    const item = state.log[i];
+    if(item.kind !== 'trade') continue;
+    if(item.result === 'W'){ streak++; } else { break; }
+  }
+  return streak;
 }
 
 function logTrade(result){
-  vibe();
+  const btn = result === 'W' ? document.getElementById('btnWin') : document.getElementById('btnLoss');
+  btn.classList.remove('bump'); void btn.offsetWidth; btn.classList.add('bump');
+
+  if(result === 'W'){ vibe(10); soundWin(); }
+  else { vibe([10,30,10]); soundLoss(); document.querySelector('.hero-card').classList.remove('shake'); }
+
+  const fromRisk = state.currentRisk;
   state.batch.push(result);
   state.log.push({kind:'trade', result, risk: state.currentRisk, batchNum: state.batchNum, ts: Date.now()});
 
@@ -324,18 +454,19 @@ function logTrade(result){
   if(state.batch.length >= BATCH){
     const wins = state.batch.filter(x => x === 'W').length;
     if(wins >= NEED){
-      const from = state.currentRisk, to = nextRisk(from);
+      const to = nextRisk(fromRisk);
       state.currentRisk = to;
-      state.log.push({kind:'levelup', from, to, wins, batchNum: state.batchNum, ts: Date.now()});
+      state.log.push({kind:'levelup', from: fromRisk, to, wins, batchNum: state.batchNum, ts: Date.now()});
       leveledUp = true;
     } else {
       state.log.push({kind:'hold', wins, risk: state.currentRisk, batchNum: state.batchNum, ts: Date.now()});
+      showToast(`Batch done — ${wins}/10 wins. Staying at ${fmt(state.currentRisk)}.`);
     }
     state.batch = [];
     state.batchNum += 1;
   }
   save();
-  render(true, leveledUp);
+  render(true, leveledUp, fromRisk);
 }
 
 function undoLast(){
@@ -353,16 +484,25 @@ function resetAll(){
 }
 
 function celebrate(){
-  const el = document.getElementById('burst');
-  el.classList.remove('show'); void el.offsetWidth;
-  el.classList.add('show');
+  confettiBurst();
   const hv = document.getElementById('riskValue');
-  hv.classList.remove('pulse'); void hv.offsetWidth;
-  hv.classList.add('pulse');
+  hv.classList.remove('pulse'); void hv.offsetWidth; hv.classList.add('pulse');
+  soundLevelUp();
+  vibe([15,40,15,40,25]);
+  showToast('🎉 Level up! New risk unlocked.');
 }
 
-function render(animate, leveledUp){
-  document.getElementById('riskValue').textContent = fmt(state.currentRisk);
+function updateSoundBtn(){
+  document.getElementById('soundBtn').innerHTML = soundOn ? ICONS.soundOn : ICONS.soundOff;
+}
+
+function render(animate, leveledUp, fromRisk){
+  if(animate && fromRisk !== undefined && fromRisk !== state.currentRisk){
+    animateNumber(fromRisk, state.currentRisk);
+  } else if(!animate){
+    document.getElementById('riskValue').textContent = fmt(state.currentRisk);
+  }
+
   document.getElementById('riskSub').textContent = state.currentRisk < CAP
     ? `Fixed-step phase · next level ${fmt(nextRisk(state.currentRisk))}`
     : `Compounding phase · +20% a step · next ${fmt(nextRisk(state.currentRisk))}`;
@@ -373,6 +513,7 @@ function render(animate, leveledUp){
   document.getElementById('trackDash').style.width = state.currentRisk > CAP ? '18%' : '0%';
 
   const wins = state.batch.filter(x => x === 'W').length;
+  const remaining = BATCH - state.batch.length;
   document.getElementById('batchCount').textContent = `${state.batch.length}/10 · ${wins}W`;
 
   const segEl = document.getElementById('segments');
@@ -386,10 +527,34 @@ function render(animate, leveledUp){
     segEl.appendChild(div);
   }
 
+  const statusEl = document.getElementById('statusLine');
+  const needed = Math.max(NEED - wins, 0);
+  if(state.batch.length === 0){
+    statusEl.textContent = "Fresh batch — let's go";
+    statusEl.className = 'status-line calm';
+  } else if(needed === 0){
+    statusEl.textContent = `Level-up secured for this batch · ${remaining} trades left`;
+    statusEl.className = 'status-line hot';
+  } else if(needed === 1 && remaining <= 3){
+    statusEl.textContent = `One more win locks the level up 👀`;
+    statusEl.className = 'status-line close';
+  } else if(remaining === 1){
+    statusEl.textContent = `Last trade of the batch`;
+    statusEl.className = 'status-line close';
+  } else {
+    statusEl.textContent = `${needed} more win${needed===1?'':'s'} needed in ${remaining} trades`;
+    statusEl.className = 'status-line calm';
+  }
+
+  const streak = currentStreak();
+  const badge = document.getElementById('streakBadge');
+  if(streak >= 3){ badge.style.display = 'inline-flex'; badge.textContent = `🔥 ${streak}`; }
+  else { badge.style.display = 'none'; }
+
   const logEl = document.getElementById('logList');
   logEl.innerHTML = '';
   if(state.log.length === 0){
-    logEl.innerHTML = '<div class="empty">No trades yet. Log a win or loss to start your first batch.</div>';
+    logEl.innerHTML = '<div class="empty"><span class="emoji">🛰️</span>No trades yet. Log a win or loss to start your first batch.</div>';
   } else {
     [...state.log].reverse().forEach(item => {
       const row = document.createElement('div');
@@ -402,7 +567,7 @@ function render(animate, leveledUp){
         sub = `Batch ${item.batchNum} · risk ${fmt(item.risk)}`;
       } else if(item.kind === 'levelup'){
         iconClass = 'icon-up'; iconSvg = ICONS.up;
-        title = 'Level up';
+        title = '🎉 Level up';
         sub = `${fmt(item.from)} → ${fmt(item.to)} · ${item.wins}/10 wins`;
       } else {
         iconClass = 'icon-hold'; iconSvg = ICONS.hold;
@@ -424,6 +589,12 @@ document.getElementById('btnLoss').addEventListener('click', () => logTrade('L')
 document.getElementById('btnUndo').addEventListener('click', undoLast);
 document.getElementById('btnReset').addEventListener('click', () => {
   if(confirm('Reset risk level and clear all history?')) resetAll();
+});
+document.getElementById('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  updateSoundBtn();
+  saveSound();
+  if(soundOn) tone(660,0,.1,0.1,'triangle');
 });
 
 window.addEventListener('scroll', () => {
