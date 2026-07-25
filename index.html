@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Risk Ladder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12161C;
+    --panel: #181D25;
+    --panel-2: #1F262F;
+    --line: #2A323C;
+    --amber: #F0B429;
+    --amber-dim: #8A6A22;
+    --win: #2FBF71;
+    --win-dim: #1D4A36;
+    --loss: #FF5C5C;
+    --loss-dim: #542626;
+    --text: #E7EAEE;
+    --text-dim: #8B96A3;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height:100vh;
+    padding: 28px 16px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.18em;
+    color: var(--text-dim);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family: var(--font-display);
+    font-size:22px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin-bottom:22px;
+    display:flex; align-items:baseline; gap:10px;
+  }
+  h1 .tick{color:var(--amber);}
+
+  .risk-card{
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:24px;
+    margin-bottom:16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .risk-card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:2px;
+    background: var(--amber);
+    opacity:0.7;
+  }
+  .risk-label{
+    font-size:11px; letter-spacing:0.14em; color:var(--text-dim); text-transform:uppercase;
+  }
+  .risk-value{
+    font-family: var(--font-display);
+    font-size:56px;
+    font-weight:700;
+    color:var(--amber);
+    line-height:1.1;
+    margin:4px 0 2px;
+  }
+  .risk-sub{font-size:12px; color:var(--text-dim);}
+
+  .ladder{
+    display:flex;
+    gap:4px;
+    margin-top:20px;
+    flex-wrap:wrap;
+  }
+  .rung{
+    flex:1;
+    min-width:34px;
+    text-align:center;
+    padding:6px 2px;
+    border-radius:6px;
+    font-size:11px;
+    background: var(--panel);
+    color: var(--text-dim);
+    border:1px solid var(--line);
+  }
+  .rung.done{background: var(--win-dim); color:var(--win); border-color:transparent;}
+  .rung.now{background: var(--amber); color:#181D25; font-weight:700; border-color:transparent;}
+
+  .batch-card{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 24px;
+    margin-bottom:16px;
+  }
+  .batch-head{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
+  }
+  .batch-title{font-family:var(--font-display); font-size:15px; font-weight:600;}
+  .batch-count{font-size:12px; color:var(--text-dim);}
+  .slots{display:flex; gap:6px; margin-bottom:16px;}
+  .slot{
+    flex:1; height:34px; border-radius:6px;
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700;
+  }
+  .slot.win{background:var(--win-dim); color:var(--win); border-color:transparent;}
+  .slot.loss{background:var(--loss-dim); color:var(--loss); border-color:transparent;}
+  .slot.threshold{border-bottom:2px solid var(--amber);}
+
+  .btn-row{display:flex; gap:10px;}
+  button{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:14px;
+    border:none;
+    border-radius:9px;
+    padding:13px 0;
+    cursor:pointer;
+    flex:1;
+    transition: transform .08s ease, filter .12s ease;
+  }
+  button:active{transform: scale(0.97);}
+  .btn-win{background:var(--win); color:#0E241A;}
+  .btn-loss{background:var(--loss); color:#2B0E0E;}
+  .btn-win:hover, .btn-loss:hover{filter:brightness(1.08);}
+
+  .util-row{display:flex; gap:10px; margin-top:12px;}
+  .btn-util{
+    background:transparent; color:var(--text-dim);
+    border:1px solid var(--line);
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:500;
+    padding:9px 0;
+  }
+  .btn-util:hover{color:var(--text); border-color:var(--text-dim);}
+
+  .log-card{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 24px;
+  }
+  .log-title{font-family:var(--font-display); font-size:14px; font-weight:600; margin-bottom:12px; color:var(--text-dim);}
+  .log-list{display:flex; flex-direction:column-reverse; gap:0; max-height:280px; overflow-y:auto;}
+  .log-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+    font-size:12.5px;
+  }
+  .log-item:first-child{border-bottom:none;}
+  .log-item .l-tag{
+    font-weight:700; padding:2px 7px; border-radius:4px; font-size:10.5px; letter-spacing:0.04em;
+  }
+  .tag-w{background:var(--win-dim); color:var(--win);}
+  .tag-l{background:var(--loss-dim); color:var(--loss);}
+  .tag-up{background:var(--amber-dim); color:var(--amber);}
+  .tag-hold{background:var(--panel-2); color:var(--text-dim);}
+  .log-meta{color:var(--text-dim); font-size:11px;}
+  .empty{color:var(--text-dim); font-size:12.5px; text-align:center; padding:20px 0;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+
+  .note{font-size:11px; color:var(--text-dim); margin-top:10px; line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">position sizing</div>
+  <h1><span class="tick">▮</span> Risk Ladder</h1>
+
+  <div class="risk-card">
+    <div class="risk-label">current risk per trade</div>
+    <div class="risk-value" id="riskValue">$10</div>
+    <div class="risk-sub" id="riskSub">Level 1 · pass 7/10 to move up</div>
+    <div class="ladder" id="ladder"></div>
+  </div>
+
+  <div class="batch-card">
+    <div class="batch-head">
+      <div class="batch-title">Current batch</div>
+      <div class="batch-count" id="batchCount">0 / 10 · 0 wins</div>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="btn-row">
+      <button class="btn-win" id="btnWin">+ Log Win</button>
+      <button class="btn-loss" id="btnLoss">− Log Loss</button>
+    </div>
+    <div class="util-row">
+      <button class="btn-util" id="btnUndo">Undo last</button>
+      <button class="btn-util" id="btnReset">Reset everything</button>
+    </div>
+    <div class="note">Need 7 of 10 wins in a batch to level up. Fresh batch starts right after every 10th trade, win or lose. Below $100: +$10 per level. At $100+: +20% per level.</div>
+  </div>
+
+  <div class="log-card">
+    <div class="log-title">History</div>
+    <div class="log-list" id="logList"></div>
+  </div>
+</div>
+
+<script>
+const START_RISK = 10;
+const CAP = 100;
+const STEP = 10;
+const GROWTH = 1.2;
+const NEED = 7;
+const BATCH = 10;
+
+let state = {
+  currentRisk: START_RISK,
+  batch: [],          // array of 'W'/'L' for the open batch
+  log: [],            // {kind:'trade'|'levelup'|'hold', ...}
+  batchNum: 1
+};
+
+function nextRisk(r){
+  if (r < CAP) return Math.min(r + STEP, CAP);
+  return Math.round(r * GROWTH);
+}
+
+function ladderLevels(){
+  const levels = [];
+  for(let v = START_RISK; v <= CAP; v += STEP) levels.push(v);
+  return levels;
+}
+
+async function load(){
+  try{
+    const res = await window.storage.get('risk-ladder-state', false);
+    if(res && res.value){
+      state = JSON.parse(res.value);
+    }
+  }catch(e){
+    // no saved state yet
+  }
+  render();
+}
+
+async function save(){
+  try{
+    await window.storage.set('risk-ladder-state', JSON.stringify(state), false);
+  }catch(e){
+    console.error('save failed', e);
+  }
+}
+
+function logTrade(result){
+  state.batch.push(result);
+  state.log.push({kind:'trade', result, risk: state.currentRisk, batchNum: state.batchNum, ts: Date.now()});
+
+  if(state.batch.length >= BATCH){
+    const wins = state.batch.filter(x => x === 'W').length;
+    if(wins >= NEED){
+      const from = state.currentRisk;
+      const to = nextRisk(from);
+      state.currentRisk = to;
+      state.log.push({kind:'levelup', from, to, wins, batchNum: state.batchNum, ts: Date.now()});
+    } else {
+      state.log.push({kind:'hold', wins, risk: state.currentRisk, batchNum: state.batchNum, ts: Date.now()});
+    }
+    state.batch = [];
+    state.batchNum += 1;
+  }
+  save();
+  render();
+}
+
+function undoLast(){
+  if(state.batch.length === 0){
+    // can't safely undo across a batch boundary
+    return;
+  }
+  state.batch.pop();
+  // remove the most recent 'trade' log entry
+  for(let i = state.log.length - 1; i >= 0; i--){
+    if(state.log[i].kind === 'trade'){
+      state.log.splice(i, 1);
+      break;
+    }
+  }
+  save();
+  render();
+}
+
+function resetAll(){
+  state = {currentRisk: START_RISK, batch: [], log: [], batchNum: 1};
+  save();
+  render();
+}
+
+function fmt(n){
+  return '$' + n.toLocaleString();
+}
+
+function timeAgo(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' · ' +
+         d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+}
+
+function render(){
+  document.getElementById('riskValue').textContent = fmt(state.currentRisk);
+  const levels = ladderLevels();
+  const idx = levels.indexOf(state.currentRisk);
+  let subText;
+  if(state.currentRisk < CAP){
+    subText = `Fixed-step phase · next level ${fmt(nextRisk(state.currentRisk))}`;
+  } else {
+    subText = `Compounding phase · +20% per level · next ${fmt(nextRisk(state.currentRisk))}`;
+  }
+  document.getElementById('riskSub').textContent = subText;
+
+  const ladderEl = document.getElementById('ladder');
+  ladderEl.innerHTML = '';
+  levels.forEach(v => {
+    const div = document.createElement('div');
+    div.className = 'rung';
+    if(v < state.currentRisk) div.className += ' done';
+    if(v === state.currentRisk) div.className += ' now';
+    div.textContent = '$' + v;
+    ladderEl.appendChild(div);
+  });
+  if(state.currentRisk >= CAP){
+    const div = document.createElement('div');
+    div.className = 'rung now';
+    div.textContent = fmt(state.currentRisk) + '+';
+    ladderEl.appendChild(div);
+  }
+
+  const wins = state.batch.filter(x => x === 'W').length;
+  document.getElementById('batchCount').textContent = `${state.batch.length} / 10 · ${wins} wins`;
+
+  const slotsEl = document.getElementById('slots');
+  slotsEl.innerHTML = '';
+  for(let i = 0; i < BATCH; i++){
+    const div = document.createElement('div');
+    div.className = 'slot';
+    if(i === NEED - 1) div.className += ' threshold';
+    const r = state.batch[i];
+    if(r === 'W'){ div.className += ' win'; div.textContent = 'W'; }
+    else if(r === 'L'){ div.className += ' loss'; div.textContent = 'L'; }
+    slotsEl.appendChild(div);
+  }
+
+  const logEl = document.getElementById('logList');
+  logEl.innerHTML = '';
+  if(state.log.length === 0){
+    logEl.innerHTML = '<div class="empty">No trades logged yet — log a win or loss to start.</div>';
+  } else {
+    state.log.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'log-item';
+      let tagHtml, mainText, metaText;
+      if(item.kind === 'trade'){
+        tagHtml = item.result === 'W'
+          ? '<span class="l-tag tag-w">WIN</span>'
+          : '<span class="l-tag tag-l">LOSS</span>';
+        mainText = `Batch ${item.batchNum} · risk ${fmt(item.risk)}`;
+        metaText = timeAgo(item.ts);
+      } else if(item.kind === 'levelup'){
+        tagHtml = '<span class="l-tag tag-up">LEVEL UP</span>';
+        mainText = `${fmt(item.from)} → ${fmt(item.to)} · ${item.wins}/10 wins`;
+        metaText = timeAgo(item.ts);
+      } else {
+        tagHtml = '<span class="l-tag tag-hold">HOLD</span>';
+        mainText = `Stayed at ${fmt(item.risk)} · ${item.wins}/10 wins`;
+        metaText = timeAgo(item.ts);
+      }
+      row.innerHTML = `<span>${tagHtml} &nbsp; ${mainText}</span><span class="log-meta">${metaText}</span>`;
+      logEl.appendChild(row);
+    });
+  }
+}
+
+document.getElementById('btnWin').addEventListener('click', () => logTrade('W'));
+document.getElementById('btnLoss').addEventListener('click', () => logTrade('L'));
+document.getElementById('btnUndo').addEventListener('click', undoLast);
+document.getElementById('btnReset').addEventListener('click', () => {
+  if(confirm('Reset risk level and clear all history?')) resetAll();
+});
+
+load();
+</script>
+</body>
+</html>
