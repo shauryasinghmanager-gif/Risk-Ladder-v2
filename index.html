@@ -83,6 +83,18 @@
   .sound-btn:active{ transform:translateY(-50%) scale(0.88); }
   .sound-btn svg{ width:16px; height:16px; }
 
+  .sync-status{
+    position:absolute; left:16px; top:50%; transform:translateY(-50%);
+    font-size:11px; font-weight:600; color:var(--label-3);
+    display:flex; align-items:center; gap:5px;
+  }
+  .sync-dot{ width:6px; height:6px; border-radius:50%; background:var(--label-3); flex-shrink:0; }
+  .sync-status.ok .sync-dot{ background:var(--green); }
+  .sync-status.ok{ color:var(--green); }
+  .sync-status.err .sync-dot{ background:var(--red); }
+  .sync-status.err{ color:var(--red); }
+  .sync-status.busy .sync-dot{ background:var(--yellow); animation:flamePulse .8s ease-in-out infinite; }
+
   .large-title{ padding:6px 20px 18px; max-width:520px; margin:0 auto; }
   .large-title h1{
     font-size:34px; font-weight:800; letter-spacing:-0.02em;
@@ -274,6 +286,7 @@
 
   <div class="content">
     <div class="nav" id="nav">
+      <div class="sync-status" id="syncStatus"><span class="sync-dot"></span><span id="syncText">Loading…</span></div>
       <div class="nav-title">Risk Ladder</div>
       <button class="sound-btn" id="soundBtn" title="Toggle sound"></button>
     </div>
@@ -414,20 +427,75 @@ function animateNumber(from, to){
 }
 
 /* ---------- persistence ---------- */
+const STATE_KEY = 'risk-ladder-state-v2';
+const SOUND_KEY = 'risk-ladder-sound';
+
+function setSyncStatus(kind, text){
+  const el = document.getElementById('syncStatus');
+  const txt = document.getElementById('syncText');
+  el.className = 'sync-status' + (kind ? ' ' + kind : '');
+  txt.textContent = text;
+}
+
+function hasStorage(){
+  return typeof window.storage !== 'undefined'
+    && window.storage
+    && typeof window.storage.get === 'function'
+    && typeof window.storage.set === 'function';
+}
+
 async function load(){
+  if(!hasStorage()){
+    setSyncStatus('err', 'Storage unavailable — not saving');
+    console.error('window.storage is not available in this environment.');
+    updateSoundBtn();
+    render(false);
+    return;
+  }
   try{
-    const res = await window.storage.get('risk-ladder-state-v2', false);
+    const res = await window.storage.get(STATE_KEY, false);
     if(res && res.value) state = JSON.parse(res.value);
-  }catch(e){}
+  }catch(e){
+    console.warn('No existing state found (expected on first run):', e && e.message);
+  }
   try{
-    const s = await window.storage.get('risk-ladder-sound', false);
+    const s = await window.storage.get(SOUND_KEY, false);
     if(s && s.value != null) soundOn = s.value === 'true';
-  }catch(e){}
+  }catch(e){
+    // no saved sound preference yet, that's fine
+  }
+  setSyncStatus('ok', 'Synced');
   updateSoundBtn();
   render(false);
 }
-async function save(){ try{ await window.storage.set('risk-ladder-state-v2', JSON.stringify(state), false); }catch(e){} }
-async function saveSound(){ try{ await window.storage.set('risk-ladder-sound', String(soundOn), false); }catch(e){} }
+
+async function save(){
+  if(!hasStorage()){
+    setSyncStatus('err', 'Storage unavailable — not saving');
+    return;
+  }
+  setSyncStatus('busy', 'Saving…');
+  try{
+    const result = await window.storage.set(STATE_KEY, JSON.stringify(state), false);
+    if(!result){
+      setSyncStatus('err', 'Save failed — retrying');
+      console.error('window.storage.set returned falsy result for', STATE_KEY);
+      setTimeout(save, 1200);
+      return;
+    }
+    setSyncStatus('ok', 'Synced');
+  }catch(e){
+    setSyncStatus('err', 'Save failed — retrying');
+    console.error('Storage save error:', e);
+    setTimeout(save, 1500);
+  }
+}
+
+async function saveSound(){
+  if(!hasStorage()) return;
+  try{ await window.storage.set(SOUND_KEY, String(soundOn), false); }
+  catch(e){ console.error('Sound pref save error:', e); }
+}
 
 function currentStreak(){
   let streak = 0;
@@ -439,7 +507,7 @@ function currentStreak(){
   return streak;
 }
 
-function logTrade(result){
+async function logTrade(result){
   const btn = result === 'W' ? document.getElementById('btnWin') : document.getElementById('btnLoss');
   btn.classList.remove('bump'); void btn.offsetWidth; btn.classList.add('bump');
 
@@ -465,22 +533,24 @@ function logTrade(result){
     state.batch = [];
     state.batchNum += 1;
   }
-  save();
   render(true, leveledUp, fromRisk);
+  await save();
 }
 
-function undoLast(){
+async function undoLast(){
   if(state.batch.length === 0) return;
   state.batch.pop();
   for(let i = state.log.length - 1; i >= 0; i--){
     if(state.log[i].kind === 'trade'){ state.log.splice(i,1); break; }
   }
-  save(); render(false);
+  render(false);
+  await save();
 }
 
-function resetAll(){
+async function resetAll(){
   state = { currentRisk: START_RISK, batch: [], log: [], batchNum: 1 };
-  save(); render(false);
+  render(false);
+  await save();
 }
 
 function celebrate(){
