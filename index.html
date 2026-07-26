@@ -429,6 +429,7 @@ function animateNumber(from, to){
 /* ---------- persistence ---------- */
 const STATE_KEY = 'risk-ladder-state-v2';
 const SOUND_KEY = 'risk-ladder-sound';
+let storageMode = 'none'; // 'cloud' | 'local' | 'none'
 
 function setSyncStatus(kind, text){
   const el = document.getElementById('syncStatus');
@@ -437,53 +438,90 @@ function setSyncStatus(kind, text){
   txt.textContent = text;
 }
 
-function hasStorage(){
+function hasCloudStorage(){
   return typeof window.storage !== 'undefined'
     && window.storage
     && typeof window.storage.get === 'function'
     && typeof window.storage.set === 'function';
 }
 
-async function load(){
-  if(!hasStorage()){
-    setSyncStatus('err', 'Storage unavailable — not saving');
-    console.error('window.storage is not available in this environment.');
-    updateSoundBtn();
-    render(false);
+async function detectStorageMode(){
+  if(hasCloudStorage()){
+    try{
+      const testVal = String(Date.now());
+      await window.storage.set('__rl_probe__', testVal, false);
+      const r = await window.storage.get('__rl_probe__', false);
+      if(r && r.value === testVal) return 'cloud';
+    }catch(e){
+      console.warn('Cloud storage probe failed, falling back:', e && e.message);
+    }
+  }
+  try{
+    localStorage.setItem('__rl_probe__', '1');
+    const ok = localStorage.getItem('__rl_probe__') === '1';
+    localStorage.removeItem('__rl_probe__');
+    if(ok) return 'local';
+  }catch(e){
+    console.warn('localStorage probe failed:', e && e.message);
+  }
+  return 'none';
+}
+
+async function storageGet(key){
+  if(storageMode === 'cloud'){
+    const res = await window.storage.get(key, false);
+    return res ? res.value : null;
+  }
+  if(storageMode === 'local'){
+    return localStorage.getItem(key);
+  }
+  return null;
+}
+
+async function storageSet(key, value){
+  if(storageMode === 'cloud'){
+    const result = await window.storage.set(key, value, false);
+    if(!result) throw new Error('cloud storage.set returned falsy');
     return;
   }
-  try{
-    const res = await window.storage.get(STATE_KEY, false);
-    if(res && res.value) state = JSON.parse(res.value);
-  }catch(e){
-    console.warn('No existing state found (expected on first run):', e && e.message);
+  if(storageMode === 'local'){
+    localStorage.setItem(key, value);
+    return;
   }
-  try{
-    const s = await window.storage.get(SOUND_KEY, false);
-    if(s && s.value != null) soundOn = s.value === 'true';
-  }catch(e){
-    // no saved sound preference yet, that's fine
+  throw new Error('no storage backend available');
+}
+
+async function load(){
+  storageMode = await detectStorageMode();
+
+  if(storageMode === 'none'){
+    setSyncStatus('err', 'Storage unavailable — not saving');
+  } else {
+    try{
+      const raw = await storageGet(STATE_KEY);
+      if(raw) state = JSON.parse(raw);
+    }catch(e){
+      console.warn('No existing state found (expected on first run):', e && e.message);
+    }
+    try{
+      const raw = await storageGet(SOUND_KEY);
+      if(raw != null) soundOn = raw === 'true';
+    }catch(e){}
+    setSyncStatus('ok', storageMode === 'cloud' ? 'Synced' : 'Synced (this browser)');
   }
-  setSyncStatus('ok', 'Synced');
   updateSoundBtn();
   render(false);
 }
 
 async function save(){
-  if(!hasStorage()){
+  if(storageMode === 'none'){
     setSyncStatus('err', 'Storage unavailable — not saving');
     return;
   }
   setSyncStatus('busy', 'Saving…');
   try{
-    const result = await window.storage.set(STATE_KEY, JSON.stringify(state), false);
-    if(!result){
-      setSyncStatus('err', 'Save failed — retrying');
-      console.error('window.storage.set returned falsy result for', STATE_KEY);
-      setTimeout(save, 1200);
-      return;
-    }
-    setSyncStatus('ok', 'Synced');
+    await storageSet(STATE_KEY, JSON.stringify(state));
+    setSyncStatus('ok', storageMode === 'cloud' ? 'Synced' : 'Synced (this browser)');
   }catch(e){
     setSyncStatus('err', 'Save failed — retrying');
     console.error('Storage save error:', e);
@@ -492,8 +530,8 @@ async function save(){
 }
 
 async function saveSound(){
-  if(!hasStorage()) return;
-  try{ await window.storage.set(SOUND_KEY, String(soundOn), false); }
+  if(storageMode === 'none') return;
+  try{ await storageSet(SOUND_KEY, String(soundOn)); }
   catch(e){ console.error('Sound pref save error:', e); }
 }
 
